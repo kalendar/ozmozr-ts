@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/client";
+import { setConference } from "@/domain/events/repo";
 import { markAllRead, markRead } from "@/domain/news/repo";
 import { setEntryTags } from "@/domain/tags/repo";
 import { failure, formId, formString, type FormState } from "@/lib/action";
+import { ValidationError } from "@/lib/errors";
 import { requireUser } from "@/lib/session";
 import { normalizeTags, parseTagInput } from "@/lib/tags";
 
@@ -28,6 +30,29 @@ export async function setEntryTagsAction(_prev: FormState, form: FormData): Prom
     await setEntryTags(getDb(), user.id, entryId, parseTagInput(formString(form, "tags")));
     revalidatePath(`/e/${entryId}`);
     return { ok: "Tags saved" };
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+function dateField(form: FormData, key: string): Date | null {
+  const raw = formString(form, key);
+  if (!raw) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) throw new ValidationError("Dates must look like 2027-03-01");
+  const parsed = new Date(`${raw}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) throw new ValidationError("That date does not exist");
+  return parsed;
+}
+
+export async function setConferenceAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const user = await requireUser();
+  try {
+    const details = form.get("isConference")
+      ? { theme: formString(form, "theme") || null, registerBy: dateField(form, "registerBy"), submitBy: dateField(form, "submitBy") }
+      : null;
+    await setConference(getDb(), user.id, formId(form, "eventId"), details);
+    revalidatePath("/news", "layout");
+    return { ok: "Saved" };
   } catch (err) {
     return failure(err);
   }

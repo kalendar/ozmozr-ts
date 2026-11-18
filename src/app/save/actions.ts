@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { getDb } from "@/db/client";
 import { saveLink, unsaveLink } from "@/domain/bookmarks/repo";
+import { extractEventsForEntry } from "@/domain/events/repo";
 import { failure, formId, formString, type FormState } from "@/lib/action";
 import { requireUser } from "@/lib/session";
 import { parseTagInput } from "@/lib/tags";
@@ -18,6 +19,8 @@ export async function saveLinkAction(_prev: FormState, form: FormData): Promise<
       tags: parseTagInput(formString(form, "tags")),
     });
     entryId = result.entryId;
+    // Look for events on a newly saved page. Bounded and failure-tolerant.
+    if (result.created) await extractEventsForEntry(getDb(), entryId);
   } catch (err) {
     return failure(err);
   }

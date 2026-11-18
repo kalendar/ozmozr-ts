@@ -3,12 +3,14 @@ import { EntryCard, EntryList } from "@/components/entry-card";
 import { Empty, TagCloud, TagFilter } from "@/components/ui";
 import { getDb } from "@/db/client";
 import { PAGE_SIZE } from "@/domain/entries/query";
+import { listUpcomingEvents } from "@/domain/events/repo";
 import { listNews, newsTagCloud, type NewsCursor } from "@/domain/news/repo";
 import { getProfileByUserId } from "@/domain/people/profiles";
 import { firstParam, queryString, type SearchParams } from "@/lib/params";
 import { requireUser } from "@/lib/session";
 import { tagsToPath } from "@/lib/tags";
 import { markAllReadAction, markReadAction } from "./actions";
+import { EventsPanel } from "./events-panel";
 import { NewsTabs } from "./news-tabs";
 
 function parseCursor(raw: string | undefined): NewsCursor | undefined {
@@ -23,10 +25,11 @@ export async function NewsView({ tags, searchParams }: { tags: string[]; searchP
   const show = firstParam(sp.show) === "unread" ? "unread" : "all";
   const before = parseCursor(firstParam(sp.before));
   const db = getDb();
-  const [items, cloud, profile] = await Promise.all([
+  const [items, cloud, profile, events] = await Promise.all([
     listNews(db, user.id, { tags, unreadOnly: show === "unread", before }),
     newsTagCloud(db, user.id),
     getProfileByUserId(db, user.id),
+    listUpcomingEvents(db, user.id, { limit: 8 }),
   ]);
   const path = (t: string[]) => (t.length > 0 ? `/news/tagged/${tagsToPath(t)}` : "/news");
   const href = (over: { show?: string; tags?: string[]; before?: string }) =>
@@ -94,6 +97,7 @@ export async function NewsView({ tags, searchParams }: { tags: string[]; searchP
             <TagCloud tags={cloud} hrefFor={(t) => href({ tags: [...new Set([...tags, t])] })} />
           )}
         </section>
+        <EventsPanel events={events} calendarHref={`/calendar.ics${queryString({ key: profile?.feed_key })}`} />
         <section className="card space-y-1 text-sm">
           <h2 className="mb-1 text-sm font-semibold">Take it with you</h2>
           <p><a className="link" href={rssHref}>This view as RSS</a></p>

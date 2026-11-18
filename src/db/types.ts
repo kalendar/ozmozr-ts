@@ -183,8 +183,31 @@ export interface GroupLinksTable {
   created_at: CreatedAt;
 }
 
+type NullableTimestamp = ColumnType<Date | null, Date | string | null | undefined, Date | string | null>;
+
+export interface EventsTable {
+  id: Generated<number>;
+  entry_id: number;
+  name: string;
+  starts_at: Timestamp;
+  ends_at: NullableTimestamp;
+  location: string | null;
+  url: string;
+  description: Generated<string>;
+  created_at: CreatedAt;
+}
+
+export interface ConferencesTable {
+  event_id: number;
+  theme: string | null;
+  register_by: NullableTimestamp;
+  submit_by: NullableTimestamp;
+}
+
 export interface DB {
   user: UserTable;
+  events: EventsTable;
+  conferences: ConferencesTable;
   groups: GroupsTable;
   group_members: GroupMembersTable;
   group_feeds: GroupFeedsTable;
