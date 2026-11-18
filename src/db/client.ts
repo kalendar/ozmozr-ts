@@ -9,9 +9,11 @@ export type { DB };
 export type Db = Kysely<DB>;
 
 export function createDb(url: string = requireUrl()): Kysely<DB> {
-  return new Kysely<DB>({
-    dialect: new PostgresDialect({ pool: new pg.Pool({ connectionString: url, max: 10 }) }),
-  });
+  return fromPool(new pg.Pool({ connectionString: url, max: 10 }));
+}
+
+function fromPool(pool: pg.Pool): Kysely<DB> {
+  return new Kysely<DB>({ dialect: new PostgresDialect({ pool }) });
 }
 
 function requireUrl(): string {
@@ -20,12 +22,16 @@ function requireUrl(): string {
   return url;
 }
 
-let shared: Kysely<DB> | undefined;
+const g = globalThis as { __ozPool?: pg.Pool; __ozDb?: Kysely<DB> };
+
+/** Process-wide connection pool, shared by Kysely and the auth library. */
+export function getPool(): pg.Pool {
+  return (g.__ozPool ??= new pg.Pool({ connectionString: requireUrl(), max: 10 }));
+}
+
 /** Process-wide database handle for the web app and worker. */
 export function getDb(): Kysely<DB> {
-  const g = globalThis as { __ozDb?: Kysely<DB> };
-  shared ??= g.__ozDb ??= createDb();
-  return shared;
+  return (g.__ozDb ??= fromPool(getPool()));
 }
 
 /** Run fn in a transaction, reusing the current one when already inside it. */

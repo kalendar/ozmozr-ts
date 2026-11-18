@@ -10,9 +10,11 @@
     "test": "vitest run",
     "db:migrate": "tsx src/db/migrate.ts",
     "worker": "tsx src/worker/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "e2e": "playwright test"
   },
   "dependencies": {
+    "better-auth": "1.7.25",
     "kysely": "0.29.9",
     "next": "16.4.6",
     "pg": "8.23.1",
@@ -21,6 +23,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.1",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "24.19.2",
     "@types/pg": "8.23.1",

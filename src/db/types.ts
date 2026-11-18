@@ -79,7 +79,18 @@ export interface EntryReadsTable {
   created_at: CreatedAt;
 }
 
+export interface UserTable {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image: string | null;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+
 export interface DB {
+  user: UserTable;
   feeds: FeedsTable;
   entries: EntriesTable;
   tags: TagsTable;
