@@ -96,8 +96,43 @@ export interface SavesTable {
   created_at: CreatedAt;
 }
 
+export interface FriendshipsTable {
+  id: Generated<number>;
+  user_id: string;
+  friend_id: string;
+  status: Generated<"pending" | "accepted">;
+  created_at: CreatedAt;
+}
+
+export interface FriendshipTagsTable {
+  friendship_id: number;
+  tag_id: number;
+  owner_id: string;
+}
+
+export interface EntrySharesTable {
+  id: Generated<number>;
+  entry_id: number;
+  from_user_id: string;
+  to_user_id: string;
+  comment: Generated<string>;
+  created_at: CreatedAt;
+}
+
+export interface ProfileCommentsTable {
+  id: Generated<number>;
+  profile_user_id: string;
+  author_id: string;
+  body: string;
+  created_at: CreatedAt;
+}
+
 export interface DB {
   user: UserTable;
+  friendships: FriendshipsTable;
+  friendship_tags: FriendshipTagsTable;
+  entry_shares: EntrySharesTable;
+  profile_comments: ProfileCommentsTable;
   saves: SavesTable;
   feeds: FeedsTable;
   entries: EntriesTable;

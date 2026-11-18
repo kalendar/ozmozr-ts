@@ -8,6 +8,7 @@ export function NewsTabs({ active, allHref = "/news", unreadHref = "/news?show=u
         { key: "all", label: "All", href: allHref },
         { key: "unread", label: "Unread", href: unreadHref },
         { key: "saved", label: "Saved", href: "/news/saved" },
+        { key: "shared", label: "Shared with me", href: "/news/shared" },
       ]}
     />
   );

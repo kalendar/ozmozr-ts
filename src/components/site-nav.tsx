@@ -29,6 +29,7 @@ export async function SiteNav() {
           <div className="flex items-center gap-3 text-sm">
             <Link href="/save" className="btn btn-primary">Save link</Link>
             <Link href={`/u/${user.handle}`} className="hover:text-accent">{user.displayName}</Link>
+            <Link href="/friends" className="text-muted hover:text-ink">Friends</Link>
             <Link href="/settings" className="text-muted hover:text-ink">Settings</Link>
             <form action={logOut}>
               <button type="submit" className="cursor-pointer text-muted hover:text-ink">Log out</button>

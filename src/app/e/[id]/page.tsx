@@ -7,7 +7,11 @@ import { TagEditor } from "@/components/tag-editor";
 import { setEntryTagsAction } from "@/app/news/actions";
 import { markRead } from "@/domain/news/repo";
 import { getMyEntryTags, suggestTags } from "@/domain/tags/repo";
+import { shareWithFriendsAction } from "@/app/people/actions";
 import { unsaveAction } from "@/app/save/actions";
+import { ShareForm } from "@/components/share-form";
+import { listFriends } from "@/domain/people/friends";
+import { listMySharesOfEntry } from "@/domain/people/shares";
 import { getSave } from "@/domain/bookmarks/repo";
 import { idParam, queryString } from "@/lib/params";
 import { getUser } from "@/lib/session";
@@ -22,6 +26,7 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
   if (!entry) notFound();
   const user = await getUser();
   const save = user ? await getSave(db, user.id, entryId) : null;
+  const sharing = user ? await Promise.all([listFriends(db, user.id), listMySharesOfEntry(db, user.id, entryId)]) : null;
   const mine = user
     ? await Promise.all([getMyEntryTags(db, user.id, entryId), suggestTags(db, user.id, entryId), markRead(db, user.id, [entryId])])
     : null;
@@ -68,6 +73,21 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
               { label: "Popular here:", tags: mine[1].popular },
               { label: "You often use:", tags: mine[1].mine },
             ]}
+          />
+        </section>
+      )}
+      {sharing && (
+        <section className="card mt-4" aria-labelledby="share-friends">
+          <h2 id="share-friends" className="mb-2 text-sm font-semibold">Share with friends</h2>
+          <ShareForm
+            action={shareWithFriendsAction}
+            entryId={entryId}
+            legend="Friends"
+            name="friendId"
+            options={sharing[0].map((f) => ({ value: f.userId, label: f.displayName }))}
+            already={sharing[1]}
+            submitLabel="Share"
+            emptyText="Add friends to share entries with them."
           />
         </section>
       )}
