@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.1">
+<head>
+    <title>Subscriptions</title>
+    <dateCreated>Mon, 12 Jun 2006 20:45:04 GMT</dateCreated>
+    <ownerName/>
+</head>
+<body>
+  <outline text="Fun">
+       <outline title="Boing Boing" text="Boing Boing" htmlUrl="http://www.boingboing.net/" type="rss" xmlUrl="http://boingboing.net/rss.xml"/>
+       <outline title="Dilbert" text="Dilbert" htmlUrl="http://www.dilbert.com/" type="rss" xmlUrl="http://www.tapestrycomics.com/dilbert.xml"/>
+       <outline title="Engadget" text="Engadget" htmlUrl="http://www.engadget.com/" type="rss" xmlUrl="http://www.engadget.com/rss.xml"/>
+       <outline title="Indieish : Your Free Music Daily" text="Indieish : Your Free Music Daily" htmlUrl="http://indieish.com" type="rss" xmlUrl="http://feeds.feedburner.com/cc365"/>
+    </outline>
+</body>
+</opml>

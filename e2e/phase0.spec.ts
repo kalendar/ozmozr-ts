@@ -4,11 +4,11 @@ import { logIn, logOut, signUp, uniqueHandle } from "./helpers";
 test("sign up, land on news, sign out, sign in again", async ({ page }) => {
   const handle = uniqueHandle("ada");
   await signUp(page, handle, "Ada Lovelace");
-  await expect(page.getByRole("heading", { name: "My News" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "My News", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Ada Lovelace" })).toBeVisible();
   await logOut(page);
   await logIn(page, handle);
-  await expect(page.getByRole("heading", { name: "My News" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "My News", exact: true })).toBeVisible();
 });
 
 test("signed-out visitors are sent to log in", async ({ page }) => {

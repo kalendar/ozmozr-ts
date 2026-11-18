@@ -73,3 +73,10 @@ export async function getProfileByUserId(db: Db, userId: string): Promise<Profil
   const row = await db.selectFrom("profiles").selectAll().where("user_id", "=", userId).executeTakeFirst();
   return row ?? null;
 }
+
+/** The owner of a private feed key (used by /news.rss and /calendar.ics), or null. */
+export async function getUserIdByFeedKey(db: Db, key: string): Promise<string | null> {
+  if (!key || key.length > 100) return null;
+  const row = await db.selectFrom("profiles").select("user_id").where("feed_key", "=", key).executeTakeFirst();
+  return row?.user_id ?? null;
+}

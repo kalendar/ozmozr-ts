@@ -3,15 +3,25 @@ import { notFound } from "next/navigation";
 import { TagList } from "@/components/ui";
 import { getDb } from "@/db/client";
 import { getEntry } from "@/domain/entries/query";
+import { TagEditor } from "@/components/tag-editor";
+import { setEntryTagsAction } from "@/app/news/actions";
+import { markRead } from "@/domain/news/repo";
+import { getMyEntryTags, suggestTags } from "@/domain/tags/repo";
 import { idParam } from "@/lib/params";
-import { tagsToPath } from "@/lib/tags";
+import { getUser } from "@/lib/session";
+import { formatTagInput, tagsToPath } from "@/lib/tags";
 import { timeAgo } from "@/lib/time";
 
 export default async function EntryPage({ params }: { params: Promise<{ id: string }> }) {
   const entryId = idParam((await params).id);
   if (entryId === null) notFound();
-  const entry = await getEntry(getDb(), entryId);
+  const db = getDb();
+  const entry = await getEntry(db, entryId);
   if (!entry) notFound();
+  const user = await getUser();
+  const mine = user
+    ? await Promise.all([getMyEntryTags(db, user.id, entryId), suggestTags(db, user.id, entryId), markRead(db, user.id, [entryId])])
+    : null;
 
   return (
     <article className="mx-auto max-w-2xl">
@@ -31,6 +41,19 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
         <p className="mt-6">
           <a href={entry.url} target="_blank" rel="noopener nofollow ugc" className="btn">Read the original ↗</a>
         </p>
+      )}
+      {mine && (
+        <section className="card mt-8">
+          <TagEditor
+            action={setEntryTagsAction}
+            hidden={{ entryId }}
+            initial={formatTagInput(mine[0])}
+            suggestions={[
+              { label: "Popular here:", tags: mine[1].popular },
+              { label: "You often use:", tags: mine[1].mine },
+            ]}
+          />
+        </section>
       )}
     </article>
   );

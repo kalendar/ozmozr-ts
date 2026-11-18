@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Every page is per-user and dynamic, so the static-shell caching model is off.
+  experimental: { serverActions: { bodySizeLimit: "6mb" } },
   serverExternalPackages: ["pg", "pg-boss", "sharp"],
   turbopack: {
     rules: {
