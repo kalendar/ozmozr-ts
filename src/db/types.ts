@@ -89,8 +89,16 @@ export interface UserTable {
   updatedAt: Generated<Date>;
 }
 
+export interface SavesTable {
+  user_id: string;
+  entry_id: number;
+  comment: Generated<string>;
+  created_at: CreatedAt;
+}
+
 export interface DB {
   user: UserTable;
+  saves: SavesTable;
   feeds: FeedsTable;
   entries: EntriesTable;
   tags: TagsTable;

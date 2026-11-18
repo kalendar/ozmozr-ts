@@ -7,7 +7,9 @@ import { TagEditor } from "@/components/tag-editor";
 import { setEntryTagsAction } from "@/app/news/actions";
 import { markRead } from "@/domain/news/repo";
 import { getMyEntryTags, suggestTags } from "@/domain/tags/repo";
-import { idParam } from "@/lib/params";
+import { unsaveAction } from "@/app/save/actions";
+import { getSave } from "@/domain/bookmarks/repo";
+import { idParam, queryString } from "@/lib/params";
 import { getUser } from "@/lib/session";
 import { formatTagInput, tagsToPath } from "@/lib/tags";
 import { timeAgo } from "@/lib/time";
@@ -19,6 +21,7 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
   const entry = await getEntry(db, entryId);
   if (!entry) notFound();
   const user = await getUser();
+  const save = user ? await getSave(db, user.id, entryId) : null;
   const mine = user
     ? await Promise.all([getMyEntryTags(db, user.id, entryId), suggestTags(db, user.id, entryId), markRead(db, user.id, [entryId])])
     : null;
@@ -40,7 +43,20 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
       {entry.url && (
         <p className="mt-6">
           <a href={entry.url} target="_blank" rel="noopener nofollow ugc" className="btn">Read the original ↗</a>
+          {user && !save && (
+            <Link href={`/save${queryString({ u: entry.url, t: entry.title })}`} className="btn ml-2">Save</Link>
+          )}
         </p>
+      )}
+      {save && (
+        <section className="card mt-8 text-sm">
+          <p className="font-semibold">You saved this {timeAgo(save.createdAt)} ago</p>
+          {save.comment && <p className="mt-1 whitespace-pre-wrap text-muted">{save.comment}</p>}
+          <form action={unsaveAction} className="mt-2">
+            <input type="hidden" name="entryId" value={entryId} />
+            <button type="submit" className="btn btn-danger">Remove from saved</button>
+          </form>
+        </section>
       )}
       {mine && (
         <section className="card mt-8">

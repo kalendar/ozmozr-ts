@@ -80,3 +80,20 @@ export async function getUserIdByFeedKey(db: Db, key: string): Promise<string | 
   const row = await db.selectFrom("profiles").select("user_id").where("feed_key", "=", key).executeTakeFirst();
   return row?.user_id ?? null;
 }
+
+export type PersonListItem = {
+  userId: string;
+  handle: string;
+  displayName: string;
+  avatarPath: string | null;
+  blurb: string;
+};
+
+/** Column list producing a PersonListItem from the profiles table (aliased or not). */
+export const personColumns = [
+  "profiles.user_id as userId",
+  "profiles.handle",
+  "profiles.display_name as displayName",
+  "profiles.avatar_path as avatarPath",
+  "profiles.blurb",
+] as const;

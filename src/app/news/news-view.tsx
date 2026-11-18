@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { EntryCard, EntryList } from "@/components/entry-card";
-import { Empty, TagCloud, TagFilter, Tabs } from "@/components/ui";
+import { Empty, TagCloud, TagFilter } from "@/components/ui";
 import { getDb } from "@/db/client";
 import { PAGE_SIZE } from "@/domain/entries/query";
 import { listNews, newsTagCloud, type NewsCursor } from "@/domain/news/repo";
@@ -9,6 +9,7 @@ import { firstParam, queryString, type SearchParams } from "@/lib/params";
 import { requireUser } from "@/lib/session";
 import { tagsToPath } from "@/lib/tags";
 import { markAllReadAction, markReadAction } from "./actions";
+import { NewsTabs } from "./news-tabs";
 
 function parseCursor(raw: string | undefined): NewsCursor | undefined {
   const match = /^(\d{1,15})-(\d{1,15})$/.exec(raw ?? "");
@@ -45,13 +46,7 @@ export async function NewsView({ tags, searchParams }: { tags: string[]; searchP
             <button type="submit" className="btn">Mark all read</button>
           </form>
         </div>
-        <Tabs
-          active={show}
-          tabs={[
-            { key: "all", label: "All", href: href({ show: "all" }) },
-            { key: "unread", label: "Unread", href: href({ show: "unread" }) },
-          ]}
-        />
+        <NewsTabs active={show} allHref={href({ show: "all" })} unreadHref={href({ show: "unread" })} />
         <TagFilter tags={tags} hrefWithout={(t) => href({ tags: tags.filter((x) => x !== t) })} />
         {items.length === 0 ? (
           <Empty>
