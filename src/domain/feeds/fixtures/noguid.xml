@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<rss version="2.0"><channel><title>No guids</title><link>https://ng.example/</link>
+  <item><title>Has link</title><link>https://ng.example/has-link</link><pubDate>Mon, 16 Nov 2026 10:00:00 GMT</pubDate></item>
+  <item><title>No link at all</title><pubDate>Mon, 16 Nov 2026 11:00:00 GMT</pubDate><description>Body</description></item>
+  <item><description>&lt;p&gt;This item has no title, only a rather long description that should be used to make a title for the entry instead.&lt;/p&gt;</description><link>https://ng.example/untitled</link></item>
+  <item><link>https://ng.example/empty</link></item>
+</channel></rss>

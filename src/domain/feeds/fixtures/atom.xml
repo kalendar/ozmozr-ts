@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Atom Example</title>
+  <subtitle>An Atom feed</subtitle>
+  <link rel="self" href="https://atom.example/feed.xml"/>
+  <link rel="alternate" type="text/html" href="https://atom.example/"/>
+  <entry>
+    <title type="html">Atom &amp;amp; entities</title>
+    <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
+    <link rel="alternate" href="https://atom.example/one"/>
+    <link rel="enclosure" href="https://atom.example/one.mp3"/>
+    <published>2026-11-10T08:00:00Z</published>
+    <updated>2026-11-12T08:00:00Z</updated>
+    <author><name>Ada</name></author>
+    <category term="Learning Analytics"/>
+    <category term="data"/>
+    <content type="html">&lt;p&gt;Escaped &lt;strong&gt;html&lt;/strong&gt; content&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <title>XHTML entry</title>
+    <id>urn:uuid:2</id>
+    <link href="https://atom.example/two"/>
+    <updated>2026-11-09T08:00:00Z</updated>
+    <content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml"><p>Real <em>markup</em> here</p></div></content>
+  </entry>
+  <entry>
+    <title>Summary only</title>
+    <id>urn:uuid:3</id>
+    <link href="https://atom.example/three"/>
+    <updated>2026-11-08T08:00:00Z</updated>
+    <summary>Just a summary.</summary>
+  </entry>
+</feed>

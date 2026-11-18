@@ -32,10 +32,8 @@ export function sanitizeHtml(html: string, baseUrl: string): string {
     transformTags: {
       a: (tagName, attribs) => {
         const href = absolute(attribs.href, baseUrl);
-        return {
-          tagName,
-          attribs: href ? { href, rel: "noopener nofollow ugc", target: "_blank" } : {},
-        };
+        const kept: Record<string, string> = href ? { href, rel: "noopener nofollow ugc", target: "_blank" } : {};
+        return { tagName, attribs: kept };
       },
       img: (tagName, attribs) => {
         const src = absolute(attribs.src, baseUrl);

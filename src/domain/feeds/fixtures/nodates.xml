@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<rss version="2.0"><channel><title>No dates</title><link>https://nd.example/</link>
+  <item><title>Undated</title><link>https://nd.example/1</link><guid>1</guid></item>
+  <item><title>Bad date</title><link>https://nd.example/2</link><guid>2</guid><pubDate>yesterday-ish</pubDate></item>
+  <item><title>Script link</title><link>javascript:alert(1)</link><guid>3</guid></item>
+</channel></rss>

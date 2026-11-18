@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Open Content &amp; Friends</title>
+    <link>https://blog.example/</link>
+    <description>Notes on open education</description>
+    <item>
+      <title>First &lt;b&gt;post&lt;/b&gt;</title>
+      <link>https://blog.example/first</link>
+      <guid isPermaLink="false">tag:blog.example,2026:1</guid>
+      <pubDate>Mon, 16 Nov 2026 10:00:00 GMT</pubDate>
+      <dc:creator>David</dc:creator>
+      <category>OER</category>
+      <category>Open Education</category>
+      <category>oer</category>
+      <description>Short summary of the first post.</description>
+      <content:encoded><![CDATA[<p>Full <a href="/about">text</a></p><script>alert(1)</script>]]></content:encoded>
+    </item>
+    <item>
+      <title>Second post</title>
+      <link>/second</link>
+      <guid>https://blog.example/second</guid>
+      <pubDate>Sun, 15 Nov 2026 09:30:00 GMT</pubDate>
+      <description><![CDATA[<p>Second <em>summary</em></p>]]></description>
+    </item>
+    <item>
+      <title>Third post</title>
+      <link>https://blog.example/third</link>
+      <guid>https://blog.example/third</guid>
+      <pubDate>Sat, 14 Nov 2026 09:30:00 GMT</pubDate>
+      <description>Third.</description>
+    </item>
+  </channel>
+</rss>
