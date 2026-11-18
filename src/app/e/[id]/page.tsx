@@ -21,6 +21,12 @@ import { getUser } from "@/lib/session";
 import { formatTagInput, tagsToPath } from "@/lib/tags";
 import { timeAgo } from "@/lib/time";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const entryId = idParam((await params).id);
+  const entry = entryId === null ? null : await getEntry(getDb(), entryId);
+  return { title: entry?.title ?? "Entry" };
+}
+
 export default async function EntryPage({ params }: { params: Promise<{ id: string }> }) {
   const entryId = idParam((await params).id);
   if (entryId === null) notFound();

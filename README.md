@@ -30,6 +30,7 @@ cp .env.example .env        # then set BETTER_AUTH_SECRET to a long random strin
 createdb ozmozr_dev && createdb ozmozr_test && createdb ozmozr_e2e
 npm install
 npm run db:migrate
+npm run db:seed             # optional: a demo account (see DEMO_* in .env), two feeds and a group
 npm run dev                 # the web app, http://localhost:3000
 npm run worker              # in a second terminal: fetches feeds every minute
 ```
