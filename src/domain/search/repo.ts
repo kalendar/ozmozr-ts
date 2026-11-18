@@ -2,23 +2,15 @@ import { sql } from "kysely";
 import type { Db } from "@/db/client";
 import { entryHasAllTags, entryListQuery, PAGE_SIZE, pageOffset, type EntryListItem } from "@/domain/entries/query";
 import type { FeedListItem } from "@/domain/feeds/repo";
+import { searchGroups, type GroupListItem } from "@/domain/groups/repo";
 import { personColumns, type PersonListItem } from "@/domain/people/profiles";
-
-export type GroupSearchItem = { id: number; slug: string; title: string; description: string; imagePath: string | null; memberCount: number };
 
 export type SearchType = "entries" | "feeds" | "people" | "groups";
 export type SearchResult =
   | { type: "entries"; items: EntryListItem[] }
   | { type: "feeds"; items: FeedListItem[] }
   | { type: "people"; items: PersonListItem[] }
-  | { type: "groups"; items: GroupSearchItem[] };
-
-/** Hook the groups phase fills in; groups do not exist before then. */
-type GroupSearch = (db: Db, q: string, page: number) => Promise<GroupSearchItem[]>;
-let groupSearch: GroupSearch = async () => [];
-export function registerGroupSearch(fn: GroupSearch): void {
-  groupSearch = fn;
-}
+  | { type: "groups"; items: GroupListItem[] };
 
 function usable(q: string): string | null {
   const trimmed = q.trim().slice(0, 200);
@@ -29,7 +21,7 @@ function usable(q: string): string | null {
 export async function search(db: Db, q: string, opts: { type: "entries"; page: number }): Promise<{ type: "entries"; items: EntryListItem[] }>;
 export async function search(db: Db, q: string, opts: { type: "feeds"; page: number }): Promise<{ type: "feeds"; items: FeedListItem[] }>;
 export async function search(db: Db, q: string, opts: { type: "people"; page: number }): Promise<{ type: "people"; items: PersonListItem[] }>;
-export async function search(db: Db, q: string, opts: { type: "groups"; page: number }): Promise<{ type: "groups"; items: GroupSearchItem[] }>;
+export async function search(db: Db, q: string, opts: { type: "groups"; page: number }): Promise<{ type: "groups"; items: GroupListItem[] }>;
 export async function search(db: Db, q: string, opts: { type: SearchType; page: number }): Promise<SearchResult>;
 export async function search(db: Db, q: string, opts: { type: SearchType; page: number }): Promise<SearchResult> {
   const text = usable(q);
@@ -95,7 +87,7 @@ export async function search(db: Db, q: string, opts: { type: SearchType; page: 
     return { type: "people", items };
   }
 
-  return { type: "groups", items: text ? await groupSearch(db, text, opts.page) : [] };
+  return { type: "groups", items: text ? await searchGroups(db, text, opts.page) : [] };
 }
 
 /** Public tag browse across every feed, personal bookmark feeds included. */

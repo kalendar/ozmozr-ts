@@ -8,7 +8,7 @@ import { getDb } from "@/db/client";
 import { listSaved } from "@/domain/bookmarks/repo";
 import { friendStatus, listFriends } from "@/domain/people/friends";
 import { getProfileByHandle, listProfileComments, userTagCloud } from "@/domain/people/profiles";
-import { profileExtras } from "@/domain/people/extras";
+import { listGroupsForUser } from "@/domain/groups/repo";
 import { pageParam, queryString, type SearchParams } from "@/lib/params";
 import { getUser } from "@/lib/session";
 import { timeAgo } from "@/lib/time";
@@ -34,7 +34,7 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
     listFriends(db, profile.user_id),
     listProfileComments(db, profile.user_id),
     viewer && !isMe ? friendStatus(db, viewer.id, profile.user_id) : null,
-    profileExtras.listGroups(db, profile.user_id),
+    listGroupsForUser(db, profile.user_id),
   ]);
   const hidden = <input type="hidden" name="userId" value={profile.user_id} />;
 

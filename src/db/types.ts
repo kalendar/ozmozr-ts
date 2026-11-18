@@ -127,8 +127,71 @@ export interface ProfileCommentsTable {
   created_at: CreatedAt;
 }
 
+export interface GroupsTable {
+  id: Generated<number>;
+  slug: string;
+  title: string;
+  description: string;
+  image_path: string | null;
+  created_at: CreatedAt;
+}
+
+export interface GroupMembersTable {
+  group_id: number;
+  user_id: string;
+  role: Generated<"owner" | "member">;
+  created_at: CreatedAt;
+}
+
+export interface GroupFeedsTable {
+  group_id: number;
+  feed_id: number;
+  created_at: CreatedAt;
+}
+
+export interface GroupEntriesTable {
+  id: Generated<number>;
+  group_id: number;
+  entry_id: number;
+  shared_by: string;
+  comment: Generated<string>;
+  created_at: ColumnType<Date, Date | string | undefined, Date | string>;
+}
+
+export interface GroupEntryVotesTable {
+  group_entry_id: number;
+  user_id: string;
+  value: 1 | -1;
+  created_at: CreatedAt;
+}
+
+export interface GroupEntryCommentsTable {
+  id: Generated<number>;
+  group_entry_id: number;
+  parent_id: number | null;
+  author_id: string;
+  body: string;
+  created_at: CreatedAt;
+}
+
+export interface GroupLinksTable {
+  id: Generated<number>;
+  group_id: number;
+  url: string;
+  title: string;
+  position: Generated<number>;
+  created_at: CreatedAt;
+}
+
 export interface DB {
   user: UserTable;
+  groups: GroupsTable;
+  group_members: GroupMembersTable;
+  group_feeds: GroupFeedsTable;
+  group_entries: GroupEntriesTable;
+  group_entry_votes: GroupEntryVotesTable;
+  group_entry_comments: GroupEntryCommentsTable;
+  group_links: GroupLinksTable;
   friendships: FriendshipsTable;
   friendship_tags: FriendshipTagsTable;
   entry_shares: EntrySharesTable;
@@ -147,3 +210,4 @@ export interface DB {
 export type Feed = Selectable<FeedsTable>;
 export type Entry = Selectable<EntriesTable>;
 export type Profile = Selectable<ProfilesTable>;
+export type Group = Selectable<GroupsTable>;

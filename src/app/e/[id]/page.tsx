@@ -7,7 +7,10 @@ import { TagEditor } from "@/components/tag-editor";
 import { setEntryTagsAction } from "@/app/news/actions";
 import { markRead } from "@/domain/news/repo";
 import { getMyEntryTags, suggestTags } from "@/domain/tags/repo";
+import { shareWithGroupsAction } from "@/app/g/actions";
 import { shareWithFriendsAction } from "@/app/people/actions";
+import { listGroupIdsHoldingEntry } from "@/domain/groups/entries";
+import { listGroupsForUser } from "@/domain/groups/repo";
 import { unsaveAction } from "@/app/save/actions";
 import { ShareForm } from "@/components/share-form";
 import { listFriends } from "@/domain/people/friends";
@@ -26,7 +29,14 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
   if (!entry) notFound();
   const user = await getUser();
   const save = user ? await getSave(db, user.id, entryId) : null;
-  const sharing = user ? await Promise.all([listFriends(db, user.id), listMySharesOfEntry(db, user.id, entryId)]) : null;
+  const sharing = user
+    ? await Promise.all([
+        listFriends(db, user.id),
+        listMySharesOfEntry(db, user.id, entryId),
+        listGroupsForUser(db, user.id),
+        listGroupIdsHoldingEntry(db, user.id, entryId),
+      ])
+    : null;
   const mine = user
     ? await Promise.all([getMyEntryTags(db, user.id, entryId), suggestTags(db, user.id, entryId), markRead(db, user.id, [entryId])])
     : null;
@@ -88,6 +98,17 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
             already={sharing[1]}
             submitLabel="Share"
             emptyText="Add friends to share entries with them."
+          />
+          <h2 id="share-groups" className="mb-2 mt-5 text-sm font-semibold">Share with groups</h2>
+          <ShareForm
+            action={shareWithGroupsAction}
+            entryId={entryId}
+            legend="Groups"
+            name="groupId"
+            options={sharing[2].map((g) => ({ value: g.id, label: g.title }))}
+            already={sharing[3]}
+            submitLabel="Share with groups"
+            emptyText="Join a group to share entries with it."
           />
         </section>
       )}
