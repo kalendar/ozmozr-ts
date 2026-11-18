@@ -8,6 +8,7 @@ import { importOpml } from "@/domain/feeds/opml";
 import { setSubscriptionTags, subscribeToFeed, subscribeToUrl, unsubscribe } from "@/domain/feeds/repo";
 import { failure, formId, formString, type FormState } from "@/lib/action";
 import { ValidationError } from "@/lib/errors";
+import { enforceLimit } from "@/lib/rate-limit";
 import { requireUser } from "@/lib/session";
 import { parseTagInput } from "@/lib/tags";
 
@@ -18,6 +19,7 @@ export async function addFeed(_prev: FormState, form: FormData): Promise<FormSta
     const url = formString(form, "url");
     if (!url) throw new ValidationError("Enter a web address");
     if (url.length > 2000) throw new ValidationError("That address is too long");
+    await enforceLimit("feedAdd", user.id);
     const db = getDb();
     const result = await subscribeToUrl(db, user.id, {
       url,
@@ -65,6 +67,7 @@ export async function importOpmlAction(_prev: FormState, form: FormData): Promis
     const file = form.get("file");
     if (!(file instanceof File) || file.size === 0) throw new ValidationError("Choose an OPML file");
     if (file.size > 2_000_000) throw new ValidationError("That file is larger than 2 MB");
+    await enforceLimit("opmlImport", user.id);
     const result = await importOpml(getDb(), user.id, await file.text());
     revalidatePath("/feeds");
     const parts = [`Added ${result.added}`, `already subscribed to ${result.skipped}`];

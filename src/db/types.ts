@@ -204,8 +204,15 @@ export interface ConferencesTable {
   submit_by: NullableTimestamp;
 }
 
+export interface RateLimitsTable {
+  key: string;
+  window_start: Date | string;
+  count: Generated<number>;
+}
+
 export interface DB {
   user: UserTable;
+  rate_limits: RateLimitsTable;
   events: EventsTable;
   conferences: ConferencesTable;
   groups: GroupsTable;

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getDb } from "@/db/client";
 import { createProfile, HANDLE_PATTERN, isHandleAvailable } from "@/domain/people/profiles";
 import { auth } from "@/lib/auth";
+import { clientAddress, enforceLimit } from "@/lib/rate-limit";
 
 export type FormState = { error?: string };
 
@@ -26,6 +27,11 @@ export async function signUp(_prev: FormState, form: FormData): Promise<FormStat
   const { email, password, handle, displayName } = parsed.data;
   const db = getDb();
   if (!(await isHandleAvailable(db, handle))) return { error: "That handle is already taken" };
+  try {
+    await enforceLimit("signup", await clientAddress());
+  } catch (err) {
+    return { error: message(err, "Too many sign-ups") };
+  }
 
   let userId: string;
   try {

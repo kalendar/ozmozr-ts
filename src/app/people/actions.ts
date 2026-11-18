@@ -6,6 +6,7 @@ import { removeFriend, requestFriend, respondToRequest, setFriendTags } from "@/
 import { addProfileComment, deleteProfileComment, setAvatar, updateProfile } from "@/domain/people/profiles";
 import { shareEntryWithFriends } from "@/domain/people/shares";
 import { failure, formId, formString, type FormState } from "@/lib/action";
+import { enforceLimit } from "@/lib/rate-limit";
 import { requireUser } from "@/lib/session";
 import { saveImage } from "@/lib/storage";
 import { parseTagInput } from "@/lib/tags";
@@ -61,6 +62,7 @@ export async function setFriendTagsAction(_prev: FormState, form: FormData): Pro
 export async function addProfileCommentAction(_prev: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
   try {
+    await enforceLimit("comment", user.id);
     await addProfileComment(getDb(), user.id, formString(form, "profileUserId"), formString(form, "body"));
     revalidatePath(`/u/${formString(form, "handle")}`);
     return {};

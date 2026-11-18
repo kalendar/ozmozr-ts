@@ -12,6 +12,7 @@ import { createGroup, deleteGroup, joinGroup, leaveGroup, requireRole, updateGro
 import { vote } from "@/domain/groups/votes";
 import { failure, formId, formString, type FormState } from "@/lib/action";
 import { ValidationError } from "@/lib/errors";
+import { enforceLimit } from "@/lib/rate-limit";
 import { requireUser } from "@/lib/session";
 import { saveImage } from "@/lib/storage";
 
@@ -108,6 +109,7 @@ export async function voteAction(form: FormData): Promise<void> {
 export async function addGroupCommentAction(_prev: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
   try {
+    await enforceLimit("comment", user.id);
     const parent = formString(form, "parentId");
     await addGroupComment(getDb(), user.id, formId(form, "groupEntryId"), formString(form, "body"), parent ? formId(form, "parentId") : undefined);
     revalidatePath(`/g/${slugOf(form)}`, "layout");
@@ -131,6 +133,7 @@ export async function addGroupFeedAction(_prev: FormState, form: FormData): Prom
     await requireRole(db, user.id, groupId, "owner");
     const url = formString(form, "url");
     if (!url) throw new ValidationError("Enter a feed or site address");
+    await enforceLimit("feedAdd", user.id);
     // The owner subscribes too, so the feed exists and is kept fresh.
     const { feedId, created } = await subscribeToUrl(db, user.id, { url, tags: [] });
     if (created) await harvestFeed(db, feedId);
