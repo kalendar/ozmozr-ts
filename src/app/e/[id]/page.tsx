@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TagList } from "@/components/ui";
@@ -34,6 +35,8 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
   const entry = await getEntry(db, entryId);
   if (!entry) notFound();
   const user = await getUser();
+  const requestHeaders = await headers();
+  const isPrefetch = requestHeaders.has("next-router-prefetch") || requestHeaders.get("purpose") === "prefetch";
   const save = user ? await getSave(db, user.id, entryId) : null;
   const sharing = user
     ? await Promise.all([
@@ -44,7 +47,12 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
       ])
     : null;
   const mine = user
-    ? await Promise.all([getMyEntryTags(db, user.id, entryId), suggestTags(db, user.id, entryId), markRead(db, user.id, [entryId])])
+    ? await Promise.all([
+        getMyEntryTags(db, user.id, entryId),
+        suggestTags(db, user.id, entryId),
+        // A link prefetch is not a read.
+        isPrefetch ? undefined : markRead(db, user.id, [entryId]),
+      ])
     : null;
 
   return (
@@ -60,7 +68,12 @@ export default async function EntryPage({ params }: { params: Promise<{ id: stri
         <TagList tags={entry.tags} hrefFor={(t) => `/tags/${tagsToPath([t])}`} />
       </div>
       {/* content_html is sanitised when it is stored (see lib/sanitize). */}
-      <div className="prose-entry mt-5" dangerouslySetInnerHTML={{ __html: entry.contentHtml || `<p>${entry.summary}</p>` }} />
+      {entry.contentHtml ? (
+        <div className="prose-entry mt-5" dangerouslySetInnerHTML={{ __html: entry.contentHtml }} />
+      ) : (
+        // The summary is plain text, never HTML: render it as text.
+        entry.summary && <p className="prose-entry mt-5">{entry.summary}</p>
+      )}
       {entry.url && (
         <p className="mt-6">
           <a href={entry.url} target="_blank" rel="noopener nofollow ugc" className="btn">Read the original ↗</a>

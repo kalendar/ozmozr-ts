@@ -201,3 +201,9 @@ export async function deleteProfileComment(db: Db, userId: string, commentId: nu
   if (comment.author_id !== userId && comment.profile_user_id !== userId) throw new ForbiddenError();
   await db.deleteFrom("profile_comments").where("id", "=", commentId).execute();
 }
+
+/** The handle of the person whose saved-links feed this is, or null for an ordinary feed. */
+export async function getBookmarkFeedOwnerHandle(db: Db, feedId: number): Promise<string | null> {
+  const row = await db.selectFrom("profiles").select("handle").where("bookmark_feed_id", "=", feedId).executeTakeFirst();
+  return row?.handle ?? null;
+}

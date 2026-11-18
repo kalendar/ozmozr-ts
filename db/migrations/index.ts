@@ -6,6 +6,7 @@ import * as m0004 from "./0004_people";
 import * as m0005 from "./0005_groups";
 import * as m0006 from "./0006_events";
 import * as m0007 from "./0007_rate_limits";
+import * as m0008 from "./0008_events_checked";
 
 export const migrations: Record<string, Migration> = {
   "0001_core": m0001,
@@ -15,4 +16,5 @@ export const migrations: Record<string, Migration> = {
   "0005_groups": m0005,
   "0006_events": m0006,
   "0007_rate_limits": m0007,
+  "0008_events_checked": m0008,
 };

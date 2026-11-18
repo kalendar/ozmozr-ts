@@ -1,10 +1,11 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { EntryCard, EntryList } from "@/components/entry-card";
 import { ActionForm, SubmitButton } from "@/components/form";
 import { TagInput } from "@/components/tag-input";
 import { Empty, Pager, TagFilter } from "@/components/ui";
 import { getDb } from "@/db/client";
 import { getFeed, getSubscription, listFeedEntries } from "@/domain/feeds/repo";
+import { getBookmarkFeedOwnerHandle } from "@/domain/people/profiles";
 import { idParam, pageParam, queryString, tagParams, type SearchParams } from "@/lib/params";
 import { getUser } from "@/lib/session";
 import { formatTagInput } from "@/lib/tags";
@@ -17,7 +18,12 @@ export default async function FeedPage({ params, searchParams }: { params: Promi
   const user = await getUser();
   const db = getDb();
   const feed = await getFeed(db, feedId, user?.id);
-  if (!feed) notFound();
+  if (!feed) {
+    // A personal saved-links feed has no page of its own: show its owner instead.
+    const owner = await getBookmarkFeedOwnerHandle(db, feedId);
+    if (owner) redirect(`/u/${owner}`);
+    notFound();
+  }
   const tags = tagParams(sp.tag);
   const page = pageParam(sp.page);
   const [entries, subscription] = await Promise.all([

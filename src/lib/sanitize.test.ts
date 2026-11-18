@@ -41,6 +41,20 @@ test("htmlToText strips tags and decodes entities", () => {
   expect(htmlToText("<p>Tom &amp; Jerry&nbsp;&lt;3</p><script>x()</script>")).toBe("Tom & Jerry <3");
 });
 
+test("text hidden inside dropped elements never survives as plain text", () => {
+  const vectors = [
+    "<object>&lt;img src=x onerror=alert(1)&gt;</object>",
+    "<object><embed>&lt;meta http-equiv=refresh content=0;url=https://evil.example&gt;</object>",
+    "<iframe>&lt;script&gt;alert(1)&lt;/script&gt;</iframe>",
+    "<template>&lt;form action=https://evil.example&gt;</template>",
+    "<noscript>&lt;img src=x&gt;</noscript>",
+  ];
+  for (const html of vectors) {
+    expect(sanitizeHtml(html, base)).toBe("");
+    expect(htmlToText(html)).toBe("");
+  }
+});
+
 test("htmlToText cuts long text with an ellipsis", () => {
   const text = htmlToText(`<p>${"word ".repeat(200)}</p>`);
   expect(text.length).toBeLessThanOrEqual(300);

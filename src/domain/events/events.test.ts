@@ -130,11 +130,23 @@ test("renders one VEVENT per event with UTC times and escaped text", () => {
   expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(2);
   expect(ics).toContain("DTSTART:20261201T180000Z");
   expect(ics).toContain("DTEND:20261201T200000Z");
-  expect(ics).toContain("SUMMARY:Open\; Ed\\, Meetup");
+  expect(ics).toContain(String.raw`SUMMARY:Open\; Ed\, Meetup`);
   expect(ics).toContain("LOCATION:Room 1\\nLibrary");
   expect(ics).toContain("UID:event-7@ozmozr");
   expect(ics).toContain("X-WR-CALNAME:Ada's events");
   expect(ics.split("\r\n").every((line) => Buffer.byteLength(line) <= 75)).toBe(true);
+});
+
+test("text cannot break out of its line or inject calendar properties", () => {
+  const ics = renderIcal(
+    [item({ name: "A\rB", description: "x\r\nBEGIN:VALARM", conference: { theme: "t\rBEGIN:VALARM\rTRIGGER:-PT0S", registerBy: null, submitBy: null } })],
+    "Cal\r\nX-EVIL:1",
+    now,
+  );
+  const lines = ics.split("\r\n");
+  expect(lines.some((l) => /^(BEGIN:VALARM|TRIGGER|X-EVIL)/.test(l))).toBe(false);
+  expect(ics.replace(/\r\n/g, "")).not.toContain("\r");
+  expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(1);
 });
 
 test("a conference with both deadlines adds two all-day events", () => {

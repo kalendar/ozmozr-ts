@@ -29,6 +29,7 @@ export interface EntriesTable {
   content_html: Generated<string>;
   author: string | null;
   published_at: Timestamp;
+  events_checked_at: ColumnType<Date | null, Date | string | null | undefined, Date | string | null>;
   created_at: CreatedAt;
 }
 

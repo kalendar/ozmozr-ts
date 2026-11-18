@@ -7,6 +7,9 @@ const ALLOWED_TAGS = [
   "figure", "figcaption", "table", "thead", "tbody", "tr", "th", "td",
 ];
 
+/** Elements whose text is dropped along with the tag. Shared by both functions below so they always agree. */
+const NON_TEXT_TAGS = ["script", "style", "textarea", "option", "noscript", "iframe", "object", "embed", "template"];
+
 function absolute(url: string | undefined, baseUrl: string): string | null {
   if (!url) return null;
   try {
@@ -28,7 +31,7 @@ export function sanitizeHtml(html: string, baseUrl: string): string {
     allowedSchemes: ["http", "https"],
     allowProtocolRelative: false,
     disallowedTagsMode: "discard",
-    nonTextTags: ["script", "style", "textarea", "option", "noscript", "iframe", "object", "embed", "template"],
+    nonTextTags: NON_TEXT_TAGS,
     transformTags: {
       a: (tagName, attribs) => {
         const href = absolute(attribs.href, baseUrl);
@@ -52,7 +55,7 @@ export function htmlToText(html: string, maxLength = 300): string {
   const stripped = sanitize(html, {
     allowedTags: [],
     allowedAttributes: {},
-    nonTextTags: ["script", "style", "textarea", "option", "noscript", "iframe", "template"],
+    nonTextTags: NON_TEXT_TAGS,
   });
   const text = decodeHTML(stripped).replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) return text;

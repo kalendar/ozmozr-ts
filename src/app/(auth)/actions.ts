@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getDb } from "@/db/client";
 import { createProfile, HANDLE_PATTERN, isHandleAvailable } from "@/domain/people/profiles";
 import { auth } from "@/lib/auth";
+import { ValidationError } from "@/lib/errors";
 import { clientAddress, enforceLimit } from "@/lib/rate-limit";
 
 export type FormState = { error?: string };
@@ -37,14 +38,15 @@ export async function signUp(_prev: FormState, form: FormData): Promise<FormStat
   try {
     const res = await auth.api.signUpEmail({ body: { email, password, name: displayName } });
     userId = res.user.id;
-  } catch (err) {
-    return { error: message(err, "Could not create the account") };
+  } catch {
+    // Deliberately vague: do not reveal whether an email address already has an account.
+    return { error: "Could not create the account. If you already have one, log in instead." };
   }
   try {
     await createProfile(db, { userId, handle, displayName });
   } catch (err) {
     await db.deleteFrom("user").where("id", "=", userId).execute();
-    return { error: message(err, "Could not create the profile") };
+    return { error: err instanceof ValidationError ? err.message : "Could not create the profile" };
   }
   redirect("/news");
 }
@@ -54,6 +56,12 @@ const loginSchema = z.object({ email: z.email(), password: z.string().min(1) });
 export async function logIn(_prev: FormState, form: FormData): Promise<FormState> {
   const parsed = loginSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: "Enter your email and password" };
+  try {
+    await enforceLimit("login", parsed.data.email);
+    await enforceLimit("loginAddress", await clientAddress());
+  } catch (err) {
+    return { error: message(err, "Too many attempts") };
+  }
   try {
     await auth.api.signInEmail({ body: parsed.data });
   } catch {

@@ -53,13 +53,27 @@ export async function storeEvents(db: Db, entryId: number, events: readonly Extr
   return added;
 }
 
-/** Fetches an entry's page and stores any events on it. Never throws; returns how many were new. */
-export async function extractEventsForEntry(db: Db, entryId: number, fetchOpts: SafeFetchOptions = {}): Promise<number> {
+export const EVENT_RECHECK_HOURS = 24;
+
+/**
+ * Fetches an entry's page and stores any events on it. Never throws; returns
+ * how many were new. A page that was read successfully is not fetched again
+ * for a day; a failed fetch is retried the next time this is called.
+ */
+export async function extractEventsForEntry(
+  db: Db,
+  entryId: number,
+  fetchOpts: SafeFetchOptions = {},
+  now: Date = new Date(),
+): Promise<number> {
   try {
-    const entry = await db.selectFrom("entries").select("url").where("id", "=", entryId).executeTakeFirst();
+    const entry = await db.selectFrom("entries").select(["url", "events_checked_at"]).where("id", "=", entryId).executeTakeFirst();
     if (!entry?.url) return 0;
+    const checked = entry.events_checked_at;
+    if (checked && now.getTime() - checked.getTime() < EVENT_RECHECK_HOURS * 3_600_000) return 0;
     const res = await safeFetch(entry.url, { maxBytes: 3_000_000, timeoutMs: 8_000, ...fetchOpts });
     if (res.status < 200 || res.status >= 300) return 0;
+    await db.updateTable("entries").set({ events_checked_at: now }).where("id", "=", entryId).execute();
     return await storeEvents(db, entryId, extractEvents(res.body, res.finalUrl));
   } catch {
     return 0;

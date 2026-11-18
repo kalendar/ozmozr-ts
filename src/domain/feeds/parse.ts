@@ -23,6 +23,13 @@ export type ParsedFeed = { title: string; description: string; siteUrl: string |
 
 const MAX_ITEMS = 500;
 const MAX_CATEGORIES = 10;
+const MAX_URL_BYTES = 2000;
+const MAX_GUID_BYTES = 1000;
+
+/** Postgres text cannot hold NUL. */
+function noNul(value: string): string {
+  return value.replace(/\u0000/g, "");
+}
 const ATOM_TEXT = ["title", "subtitle", "summary", "content", "rights"];
 
 const parser = new XMLParser({
@@ -70,7 +77,9 @@ function httpUrl(raw: string, base: string): string | null {
   if (!raw) return null;
   try {
     const url = new URL(raw, base);
-    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    // Longer addresses cannot be indexed, and one such row would fail the whole feed.
+    return Buffer.byteLength(url.href) <= MAX_URL_BYTES ? url.href : null;
   } catch {
     return null;
   }
@@ -107,17 +116,16 @@ function finishItem(
 ): ParsedItem {
   const summary = htmlToText(raw.summaryHtml || raw.bodyHtml, 300);
   const title = cleanTitle(raw.titleHtml) || htmlToText(raw.summaryHtml || raw.bodyHtml, 100_000).slice(0, 80) || "Untitled";
-  const guid =
-    raw.guid ||
-    raw.link ||
-    createHash("sha256").update(`${title}|${raw.date ? raw.date.toISOString() : ""}`).digest("hex");
+  const hash = (value: string) => createHash("sha256").update(value).digest("hex");
+  let guid = noNul(raw.guid || raw.link || "") || hash(`${title}|${raw.date ? raw.date.toISOString() : ""}`);
+  if (Buffer.byteLength(guid) > MAX_GUID_BYTES) guid = hash(guid);
   return {
-    guid: guid.slice(0, 2000),
+    guid,
     url: raw.link,
-    title,
-    summary,
-    contentHtml: sanitizeHtml(raw.bodyHtml || raw.summaryHtml, raw.link ?? feedUrl),
-    author: raw.author ? htmlToText(raw.author, 200) : null,
+    title: noNul(title),
+    summary: noNul(summary),
+    contentHtml: noNul(sanitizeHtml(raw.bodyHtml || raw.summaryHtml, raw.link ?? feedUrl)),
+    author: raw.author ? noNul(htmlToText(raw.author, 200)) || null : null,
     publishedAt: raw.date,
     categories: normalizeTags(raw.categories).slice(0, MAX_CATEGORIES),
   };
@@ -176,7 +184,8 @@ function atomEntry(entry: Node, feedUrl: string): ParsedItem {
  * well-formed feed.
  */
 export function parseFeed(xml: string, feedUrl: string): ParsedFeed {
-  const source = xml.replace(/^﻿/, "").trim();
+  // NUL characters (raw or as character references) are not valid XML and cannot be stored.
+  const source = xml.replace(/^\uFEFF/, "").replace(/\u0000|&#(?:x0+|0+);/gi, "").trim();
   if (!source.startsWith("<")) throw new FeedParseError("This does not look like a feed");
   const valid = XMLValidator.validate(source);
   if (valid !== true) throw new FeedParseError(`The feed is not well-formed XML: ${valid.err.msg}`);

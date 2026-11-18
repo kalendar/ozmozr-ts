@@ -90,6 +90,20 @@ test("rejects input that is not a feed", () => {
   expect(() => parseFeed("", "https://x.example/")).toThrow(FeedParseError);
 });
 
+test("oversized links are dropped, oversized guids are hashed, and NUL characters are removed", () => {
+  const longUrl = `https://x.example/${"a".repeat(3000)}`;
+  const longGuid = "\u00e9".repeat(1500);
+  const xml = `<rss version="2.0"><channel><title>T</title>
+    <item><title>Long link</title><link>${longUrl}</link><guid>${longGuid}</guid></item>
+    <item><title>Nul&#x0;l title</title><guid>ok</guid><description>bo&#x0;dy</description></item>
+  </channel></rss>`;
+  const { items } = parseFeed(xml, "https://x.example/feed");
+  expect(items[0]!.url).toBeNull();
+  expect(items[0]!.guid).toMatch(/^[a-f0-9]{64}$/);
+  expect(items[1]!.title).toBe("Null title");
+  expect(JSON.stringify(items)).not.toContain("\\u0000");
+});
+
 test("keeps at most 500 items", () => {
   const items = Array.from({ length: 600 }, (_, i) => `<item><title>t${i}</title><guid>${i}</guid></item>`).join("");
   const feed = parseFeed(`<rss version="2.0"><channel><title>Big</title>${items}</channel></rss>`, "https://x.example/");

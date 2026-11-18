@@ -21,8 +21,8 @@ export async function saveLinkAction(_prev: FormState, form: FormData): Promise<
       tags: parseTagInput(formString(form, "tags")),
     });
     entryId = result.entryId;
-    // Look for events on a newly saved page. Bounded and failure-tolerant.
-    if (result.created) await extractEventsForEntry(getDb(), entryId);
+    // Look for events on the saved page (skipped if it was read in the last day). Bounded and failure-tolerant.
+    await extractEventsForEntry(getDb(), entryId);
   } catch (err) {
     return failure(err);
   }
